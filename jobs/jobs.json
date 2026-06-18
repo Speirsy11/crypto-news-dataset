@@ -1,0 +1,38 @@
+{
+  "jobs": [
+    {
+      "id": "crypto-news-public",
+      "name": "Crypto news and public sentiment",
+      "topic": "CRYPTO",
+      "sourceKind": "news-rss",
+      "scheduleMs": 900000,
+      "enabled": true,
+      "config": {
+        "feeds": [
+          {"name": "CoinDesk", "url": "https://www.coindesk.com/arc/outboundfeeds/rss/"},
+          {"name": "Cointelegraph", "url": "https://cointelegraph.com/rss"},
+          {"name": "Decrypt", "url": "https://decrypt.co/feed"},
+          {"name": "Bitcoin Magazine", "url": "https://bitcoinmagazine.com/.rss/full/"},
+          {"name": "CryptoSlate", "url": "https://cryptoslate.com/feed/"},
+          {"name": "Reddit CryptoCurrency", "url": "https://www.reddit.com/r/CryptoCurrency/.rss"}
+        ]
+      }
+    },
+    {
+      "id": "macro-news-public",
+      "name": "Macroeconomic news",
+      "topic": "MACRO",
+      "sourceKind": "news-rss",
+      "scheduleMs": 900000,
+      "enabled": true,
+      "config": {
+        "feeds": [
+          {"name": "Federal Reserve", "url": "https://www.federalreserve.gov/feeds/press_all.xml"},
+          {"name": "Federal Reserve Monetary Policy", "url": "https://www.federalreserve.gov/feeds/press_monetary.xml"},
+          {"name": "US Bureau of Economic Analysis", "url": "https://apps.bea.gov/rss/rss.xml"},
+          {"name": "European Central Bank", "url": "https://www.ecb.europa.eu/rss/press.html"}
+        ]
+      }
+    }
+  ]
+}

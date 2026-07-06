@@ -1,11 +1,11 @@
 {
   "name": "crypto-and-macro-sentiment",
-  "generated_at": "2026-07-05T23:13:13.110584Z",
+  "generated_at": "2026-07-06T23:18:54.878336Z",
   "model": "ProsusAI/finbert",
   "requested_model_revision": "main",
   "headline_weight": 0.35,
   "body_weight": 0.65,
-  "documents": 24967,
+  "documents": 27511,
   "privacy": "Feed content is processed privately and is never exported.",
   "article_layout": "sentiment/source_type=<type>/asset=<asset>/year=<YYYY>/month=<MM>/day=<DD>/sentiment.parquet",
   "daily_layout": "sentiment_daily/source_type=<type>/asset=<asset>/year=<YYYY>/month=<MM>/daily.parquet"

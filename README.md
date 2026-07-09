@@ -46,45 +46,46 @@ sentiment_daily/source_type=<type>/asset=<asset>/year=<YYYY>/month=<MM>/daily.pa
 
 _Auto-generated on each publish — do not edit manually._
 
-**Last generated:** 2026-07-07T23:27:49.760804Z
-**Coverage:** 2017-12-13 → 2026-07-07
+**Last generated:** 2026-07-09T11:09:10.388729Z
+**Coverage:** 2017-12-13 → 2026-07-09
 
 | Metric | Value |
 |--------|-------|
-| Article-level rows | 29,743 |
-| Daily aggregates | 790 |
-| Parquet files | 937 |
+| Article-level rows | 31,812 |
+| Daily aggregates | 810 |
+| Parquet files | 957 |
 
 **Per-asset counts:**
 
 | Asset | Articles | Daily rows |
 |-------|----------|------------|
-| ADA | 110 | 110 |
+| ADA | 124 | 124 |
 | BCH | 39 | 39 |
-| BNB | 87 | 87 |
-| BTC | 9,537 | 9,537 |
-| DOGE | 128 | 128 |
-| ETH | 1,248 | 1,248 |
-| GENERAL_CRYPTO | 17,170 | 17,170 |
+| BNB | 100 | 100 |
+| BTC | 9,721 | 9,721 |
+| DOGE | 133 | 133 |
+| ETH | 1,316 | 1,316 |
+| GENERAL_CRYPTO | 18,838 | 18,838 |
 | GENERAL_MACRO | 77 | 77 |
-| SOL | 492 | 492 |
-| TRX | 49 | 49 |
-| XRP | 721 | 721 |
-| ZEC | 85 | 85 |
+| SOL | 542 | 542 |
+| TRX | 51 | 51 |
+| XRP | 778 | 778 |
+| ZEC | 93 | 93 |
 
 **Per source type:**
 
 | Source Type | Articles |
 |-------------|----------|
 | macro | 78 |
-| news | 29,665 |
+| news | 31,734 |
 
-**Latest day (2026-07-07):**
+**Latest day (2026-07-09):**
 
 | Metric | Value |
 |--------|-------|
-| Documents | 1963 |
-| By source | news: 1963 |
-| By asset | ADA: 5, BCH: 1, BNB: 9, BTC: 188, DOGE: 7, ETH: 62, GENERAL_CRYPTO: 1612, SOL: 30, TRX: 4, XRP: 39, ZEC: 6 |
+| Documents | 254 |
+| By source | news: 254 |
+| By asset | ADA: 2, BNB: 4, BTC: 25, DOGE: 1, ETH: 14, GENERAL_CRYPTO: 187, SOL: 10, TRX: 1, XRP: 8, ZEC: 2 |
 <!-- AUTO-STATS END -->
+
 

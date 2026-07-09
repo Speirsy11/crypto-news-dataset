@@ -21,6 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "sentiment"
 DAILY_DIR = ROOT / "sentiment_daily"
 MANIFEST_PATH = ROOT / "metadata" / "sentiment-manifest.json"
+README_PATH = ROOT / "README.md"
+README_STATS_START = "<!-- AUTO-STATS START -->"
+README_STATS_END = "<!-- AUTO-STATS END -->"
 DEFAULT_DATABASE_URL = "postgresql://signal:signal@localhost:5544/signal_harvester"
 MODEL_NAME = os.environ.get("SENTIMENT_MODEL", "ProsusAI/finbert")
 MODEL_REVISION = os.environ.get("SENTIMENT_MODEL_REVISION", "main")
@@ -394,6 +397,149 @@ def export_dataset() -> int:
     return len(rows)
 
 
+
+
+def _count_article_stats() -> dict:
+    """Scan article-level Parquet file footers for counts."""
+    if not DATA_DIR.exists():
+        return {"article_files": 0, "article_rows": 0, "per_asset": {}, "per_source": {}}
+    article_files = 0
+    article_rows = 0
+    per_asset: dict[str, int] = {}
+    per_source: dict[str, int] = {}
+    for source_dir in sorted(DATA_DIR.iterdir()):
+        if not source_dir.is_dir() or not source_dir.name.startswith("source_type="):
+            continue
+        source_type = source_dir.name.removeprefix("source_type=")
+        for asset_dir in sorted(source_dir.iterdir()):
+            if not asset_dir.is_dir() or not asset_dir.name.startswith("asset="):
+                continue
+            asset = asset_dir.name.removeprefix("asset=")
+            for pq_file in asset_dir.rglob("*.parquet"):
+                article_files += 1
+                num_rows = pq.read_metadata(pq_file).num_rows
+                article_rows += num_rows
+                per_asset[asset] = per_asset.get(asset, 0) + num_rows
+                per_source[source_type] = per_source.get(source_type, 0) + num_rows
+    return {"article_files": article_files, "article_rows": article_rows, "per_asset": per_asset, "per_source": per_source}
+
+
+def _scan_daily_aggregates() -> dict:
+    """Scan daily Parquet files for date range and latest-day stats."""
+    if not DAILY_DIR.exists():
+        return {"daily_files": 0, "daily_rows": 0, "earliest_date": None, "latest_date": None,
+                "latest_day_docs": 0, "latest_day_by_source": {}, "latest_day_by_asset": {},
+                "per_asset_daily": {}}
+    daily_files = 0
+    daily_rows = 0
+    all_day_rows: list[tuple] = []
+    per_asset_daily: dict[str, int] = {}
+    for source_dir in sorted(DAILY_DIR.iterdir()):
+        if not source_dir.is_dir() or not source_dir.name.startswith("source_type="):
+            continue
+        source_type = source_dir.name.removeprefix("source_type=")
+        for asset_dir in sorted(source_dir.iterdir()):
+            if not asset_dir.is_dir() or not asset_dir.name.startswith("asset="):
+                continue
+            asset = asset_dir.name.removeprefix("asset=")
+            for pq_file in asset_dir.rglob("*.parquet"):
+                daily_files += 1
+                daily_rows += pq.read_metadata(pq_file).num_rows
+                table = pq.ParquetFile(pq_file).read(columns=["date", "document_count"])
+                dates = table.column("date").to_pylist()
+                counts = table.column("document_count").to_pylist()
+                for d, c in zip(dates, counts):
+                    all_day_rows.append((d, source_type, asset, c))
+                    per_asset_daily[asset] = per_asset_daily.get(asset, 0) + c
+    if not all_day_rows:
+        return {"daily_files": daily_files, "daily_rows": daily_rows, "earliest_date": None,
+                "latest_date": None, "latest_day_docs": 0,
+                "latest_day_by_source": {}, "latest_day_by_asset": {},
+                "per_asset_daily": per_asset_daily}
+    earliest_date = min(r[0] for r in all_day_rows)
+    latest_date = max(r[0] for r in all_day_rows)
+    latest_rows = [r for r in all_day_rows if r[0] == latest_date]
+    by_source: dict[str, int] = {}
+    by_asset: dict[str, int] = {}
+    for _, src, ast, c in latest_rows:
+        by_source[src] = by_source.get(src, 0) + c
+        by_asset[ast] = by_asset.get(ast, 0) + c
+    return {
+        "daily_files": daily_files, "daily_rows": daily_rows,
+        "earliest_date": earliest_date, "latest_date": latest_date,
+        "latest_day_docs": sum(by_source.values()),
+        "latest_day_by_source": by_source, "latest_day_by_asset": by_asset,
+        "per_asset_daily": per_asset_daily,
+    }
+
+
+def update_readme_stats() -> None:
+    """Regenerate the auto-stats section of README.md from Parquet file footers."""
+    article = _count_article_stats()
+    daily = _scan_daily_aggregates()
+    manifest = json.loads(MANIFEST_PATH.read_text()) if MANIFEST_PATH.exists() else {}
+    generated_at = manifest.get("generated_at", "N/A")
+    earliest = daily["earliest_date"].isoformat() if daily["earliest_date"] else "N/A"
+    latest = daily["latest_date"].isoformat() if daily["latest_date"] else "N/A"
+    all_assets = sorted(set(article["per_asset"]) | set(daily["per_asset_daily"]))
+    asset_rows = "\n".join(
+        f"| {asset} | {article['per_asset'].get(asset, 0):,} | {daily['per_asset_daily'].get(asset, 0):,} |"
+        for asset in all_assets
+    )
+    all_sources = sorted(article["per_source"])
+    source_rows = "\n".join(
+        f"| {src} | {article['per_source'].get(src, 0):,} |"
+        for src in all_sources
+    ) or "| (none) | 0 |"
+    latest_sources = ", ".join(
+        f"{src}: {count}" for src, count in sorted(daily["latest_day_by_source"].items())
+    ) or "N/A"
+    latest_assets = ", ".join(
+        f"{ast}: {count}" for ast, count in sorted(daily["latest_day_by_asset"].items())
+    ) or "N/A"
+    stats_block = f"""{README_STATS_START}
+## Dataset Stats
+
+_Auto-generated on each publish — do not edit manually._
+
+**Last generated:** {generated_at}
+**Coverage:** {earliest} → {latest}
+
+| Metric | Value |
+|--------|-------|
+| Article-level rows | {article["article_rows"]:,} |
+| Daily aggregates | {daily["daily_rows"]:,} |
+| Parquet files | {article["article_files"] + daily["daily_files"]:,} |
+
+**Per-asset counts:**
+
+| Asset | Articles | Daily rows |
+|-------|----------|------------|
+{asset_rows}
+
+**Per source type:**
+
+| Source Type | Articles |
+|-------------|----------|
+{source_rows}
+
+**Latest day ({latest}):**
+
+| Metric | Value |
+|--------|-------|
+| Documents | {daily["latest_day_docs"]} |
+| By source | {latest_sources} |
+| By asset | {latest_assets} |
+{README_STATS_END}
+"""
+    text = README_PATH.read_text() if README_PATH.exists() else ""
+    if README_STATS_START in text and README_STATS_END in text:
+        before = text[:text.index(README_STATS_START)]
+        after = text[text.index(README_STATS_END) + len(README_STATS_END):]
+        README_PATH.write_text(before + stats_block + after)
+    else:
+        README_PATH.write_text(text.rstrip() + "\n\n" + stats_block)
+
 def commit_and_push() -> None:
     paths = [
         path for path in
@@ -427,6 +573,7 @@ def main() -> int:
     if args.export or args.publish:
         export_dataset()
     if args.publish:
+        update_readme_stats()
         commit_and_push()
     return 0
 

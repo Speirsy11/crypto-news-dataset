@@ -46,7 +46,7 @@ sentiment_daily/source_type=<type>/asset=<asset>/year=<YYYY>/month=<MM>/daily.pa
 
 _Auto-generated on each publish — do not edit manually._
 
-**Last generated:** 2026-07-14T23:03:10.350666Z
+**Last generated:** 2026-07-15T23:03:04.720033Z
 **Coverage:** 2017-12-13 → 2026-07-09
 
 | Metric | Value |
@@ -87,6 +87,7 @@ _Auto-generated on each publish — do not edit manually._
 | By source | news: 254 |
 | By asset | ADA: 2, BNB: 4, BTC: 25, DOGE: 1, ETH: 14, GENERAL_CRYPTO: 187, SOL: 10, TRX: 1, XRP: 8, ZEC: 2 |
 <!-- AUTO-STATS END -->
+
 
 
 

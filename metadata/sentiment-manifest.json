@@ -1,6 +1,6 @@
 {
   "name": "crypto-and-macro-sentiment",
-  "generated_at": "2026-10-08T23:03:36.963290Z",
+  "generated_at": "2026-10-09T23:05:36.798223Z",
   "model": "ProsusAI/finbert",
   "requested_model_revision": "main",
   "headline_weight": 0.35,
